@@ -1,0 +1,9 @@
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/bin/Debug/Programs/ifthenelse.svm
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/bin/Debug/Programs/initList.svm
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/bin/Debug/Programs/sumList.svm
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/bin/Debug/Programs/squareRoot.svm
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/bin/Debug/Programs.dll
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/bin/Debug/Programs.pdb
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/obj/Debug/Programs.csproj.CoreCompileInputs.cache
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/obj/Debug/Programs.dll
+/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/Programs/obj/Debug/Programs.pdb

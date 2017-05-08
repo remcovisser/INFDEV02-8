@@ -1,0 +1,14 @@
+﻿<Properties StartupConfiguration="{F014F9A3-BCAD-4202-8F5C-A9D75864F171}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="SVM/Program.fs">
+    <Files>
+      <File FileName="SVM/Program.fs" Line="10" Column="38" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+  <MonoDevelop.Ide.ItemProperties.SVM PreferredExecutionTarget="MonoDevelop.Default" />
+</Properties>
