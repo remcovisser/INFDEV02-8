@@ -85,11 +85,17 @@ let rec UpdateAddresses n l value =
     | h::t when n = 0 -> value::t
     | h::t -> h :: UpdateAddresses (n-1) t value
 
+let UpdateRegister (state: State) register value = 
+    match register with
+    | Reg1 -> { state with reg1 = value }
+    | Reg2 -> { state with reg2 = value }
+    | Reg3 -> { state with reg3 = value }
+    | Reg4 -> { state with reg4 = value }
+
 let Move (state: State) arg1 arg2 pos = 
   match arg1 with
-    | Address lit ->
-        let index = GetIntValue lit state
-        {state with addresses = UpdateAddresses index state.addresses (GetValue arg2 state) }
+    | Address lit -> {state with addresses = UpdateAddresses (GetIntValue lit state) state.addresses (GetValue arg2 state) }
+    | Register (register, pos) -> UpdateRegister state register (GetValue arg2 state)
     | _ -> failwith "Unkown data type"
 
 
@@ -104,7 +110,7 @@ let NextStep (state:State) =
 let ExecuteStep (ast: Program) (state: State) = 
     let instruction = ast |> List.item state.pc
     match instruction with
-    | Nop _ -> state |> NextStep // Go to the next step
+    | Nop _ -> state
     | Mov(arg1,arg2,pos) -> Move state arg1 arg2 pos |> NextStep
     | _ -> failwith "Unknown action" 
 
