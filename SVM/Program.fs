@@ -18,7 +18,7 @@ type DataType =
     | String of string
     | Int of int
     | Float of float
-    | Empty
+    | Empty of int
 
 type State =  {
     pc : int
@@ -35,7 +35,7 @@ let DataTypeToString dataType =
     | String x -> x
     | Int x -> x |> string
     | Float x -> x |> string
-    | Empty -> "Empty"
+    | Empty x -> "0" 
 
 let GetValueFromAdresse state value =
     let intValue = 
@@ -72,21 +72,22 @@ let GetIntValue lit state =
 let CreateEmptyState memorySize = 
     {
         pc = 0
-        reg1 = Empty
-        reg2 = Empty
-        reg3 = Empty
-        reg4 = Empty
-        addresses = [0..memorySize-1] |> List.map (fun x -> Empty)
+        reg1 = Empty 0
+        reg2 = Empty 0
+        reg3 = Empty 0
+        reg4 = Empty 0
+        addresses = [0..memorySize-1] |> List.map (fun x -> Empty 0)
     }
 
 let PrintState state = 
-    printf "\n\n\n\nPC: %i" state.pc
+    printf "\n\nPC: %i" state.pc
     printf "\nReg1: %s" (DataTypeToString state.reg1)
     printf "\nReg2: %s" (DataTypeToString state.reg2)
     printf "\nReg3: %s" (DataTypeToString state.reg3)
     printf "\nReg4: %s" (DataTypeToString state.reg4)
     printf "\n\n"
-    state.addresses |> Seq.iter (fun x -> printf " | Memory: %s" (DataTypeToString x))
+    state.addresses |> Seq.iter (fun x -> printf "%s " (DataTypeToString x))
+    printf "\n-------------------------------------------------------------------------------\n\n"
     ()
 
 
@@ -115,14 +116,8 @@ let Division(state: State) arg1 arg2 =
     let arg2Value = GetValue arg2 state
     let result = 
         match (arg1Value, arg2Value) with    
-        | Int x, Int y -> 
-            match (x >= y) with
-            | true -> x - y |> Int
-            | false -> y - x |> Int 
-        | Float x, Float y -> 
-            match (x >= y) with
-            | true -> x - y |> Float
-            | false -> y - x |> Float 
+        | Int x, Int y -> y / x |> Int 
+        | Float x, Float y -> y / x |> Float 
         | _ -> failwith "Unknown data types"
     UpdateRegister state arg1 result
 
@@ -145,9 +140,8 @@ let rec ExecuteProgram (ast: Program) (state: State) =
     match ast.Tail.IsEmpty with
     | true -> printf "Finished executing the program"
     | false ->
-        let state' = ExecuteStep ast state
-        PrintState state'
-        ExecuteProgram ast state'
+        PrintState state
+        ExecuteProgram ast (ExecuteStep ast state)
 
 
 [<EntryPoint>]
