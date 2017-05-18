@@ -13,7 +13,7 @@ let parseFile (fileName : string) =
   parsedAST
 
 
-// ---- Types ----  
+// ---- Date types ----  
 type DataType =
     | String of string
     | Int of int
@@ -29,68 +29,83 @@ type State =  {
     pc : int
 }
 
-// ---- Operations ----
+// ---- Helpers ----
 let DataTypeToString dataType = 
     match dataType with
     | String x -> x
     | Int x -> x |> string
     | Float x -> x |> string
     | Empty -> "Empty"
-      
+
+let getValueFromAdresse state value =
+    let intValue = 
+        match value with
+        | Int x -> x
+        | _ -> failwith "No int value found"
+    state.addresses |> List.item intValue
+
+let rec GetValue (lit:Literal) (state:State) =
+    match lit with    
+    | Literal.Integer (x, z) -> Int x
+    | Literal.Float (x, z) -> Float x
+    | Literal.String(x, z) -> String x
+    | Literal.Address(lit) -> getValueFromAdresse state (GetValue lit state)
+    | _ -> failwith("Unknown value type")
+
+let GetIntValue (lit:Literal) (state:State)=
+    match GetValue lit state with
+    | Int n -> n
+    | _ -> failwith "No int value found"
+
 let CreateEmptyState memorySize = 
     {
-        addresses = [0..memorySize-1] |> List.map (fun x -> Empty)
+        pc = 0
         reg1 = Empty
         reg2 = Empty
         reg3 = Empty
         reg4 = Empty
-        pc = 0
+        addresses = [0..memorySize-1] |> List.map (fun x -> Empty)
     }
 
 let PrintState state = 
-    printf "\n\nPC: %i" state.pc
+    printf "\n\n\n\nPC: %i" state.pc
     printf "\nReg1: %s" (DataTypeToString state.reg1)
     printf "\nReg2: %s" (DataTypeToString state.reg2)
     printf "\nReg3: %s" (DataTypeToString state.reg3)
     printf "\nReg4: %s" (DataTypeToString state.reg4)
-    printf "\n\n\n\n"
+    printf "\n\n"
     state.addresses |> Seq.iter (fun x -> printf " | Memory: %s" (DataTypeToString x))
     ()
 
-let StateNextState (state:State) =
+
+// ---- Actions ----
+let rec UpdateAddresses n l value =
+    match l with
+    | [] -> failwith "index out of range"
+    | h::t when n = 0 -> value::t
+    | h::t -> h :: UpdateAddresses (n-1) t value
+
+let Move (state: State) arg1 arg2 pos = 
+  match arg1 with
+    | Address lit ->
+        let index = GetIntValue lit state
+        {state with addresses = UpdateAddresses index state.addresses (GetValue arg2 state) }
+    | _ -> failwith "Unkown data type"
+
+
+
+// Execute program
+let NextStep (state:State) =
     { 
         state with 
             pc = state.pc+1
     }
 
-let getValue (lit:Literal) =
-    match lit with    
-    | Literal.Integer (x, z) -> Int x
-    | Literal.Float (x, z) -> Float x
-    | Literal.String(x, z) -> String x
-
-let rec UpdateAddresses n l value =
-    match l with
-    | [] -> failwith "index out of range"
-    | h::t when n = 0 -> value::t
-    | h::t -> h :: (UpdateAddresses (n-1) t value)
-
-let getIntValue (lit:Literal) =
-    match getValue lit with
-    | Int n -> n
-    | _ -> failwith "error"
-
-let Move (state: State) arg1 arg2 pos = 
-  match arg1 with
-    | Address lit ->
-        let index = getIntValue lit
-        {state with addresses = UpdateAddresses index state.addresses (getValue arg2) }
-
 let ExecuteStep (ast: Program) (state: State) = 
     let instruction = ast |> List.item state.pc
     match instruction with
-    | Nop _ -> state |> StateNextState // Go to the next step
-    | Mov(arg1,arg2,pos) -> Move state arg1 arg2 pos |> StateNextState
+    | Nop _ -> state |> NextStep // Go to the next step
+    | Mov(arg1,arg2,pos) -> Move state arg1 arg2 pos |> NextStep
     | _ -> failwith "Unknown action" 
 
 let rec ExecuteProgram (ast: Program) (state: State) =     
@@ -102,13 +117,11 @@ let rec ExecuteProgram (ast: Program) (state: State) =
         ExecuteProgram ast executedState
 
 
-
 [<EntryPoint>]
 let main argv =
   try
     if argv.Length = 2 then
       let ast = parseFile argv.[0]
-      //do printfn "%A" program
       // ---- Implemented ----
       let state = CreateEmptyState (int argv.[1])
       ExecuteProgram ast state  
@@ -124,5 +137,3 @@ let main argv =
   | :? Exception as e ->
       do printfn "%s" e.Message
       1
-
-
