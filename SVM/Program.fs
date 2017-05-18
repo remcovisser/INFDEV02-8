@@ -13,7 +13,7 @@ let parseFile (fileName : string) =
   parsedAST
 
 
-// ---- Date types ----  
+// ---- Types ----  
 type DataType =
     | String of string
     | Int of int
@@ -21,13 +21,13 @@ type DataType =
     | Empty
 
 type State =  {
-    addresses : DataType list
+    pc : int
     reg1 : DataType
     reg2 : DataType
     reg3 : DataType
     reg4 : DataType
-    pc : int
-}
+    addresses : DataType list
+    }
 
 // ---- Helpers ----
 let DataTypeToString dataType = 
@@ -37,22 +37,34 @@ let DataTypeToString dataType =
     | Float x -> x |> string
     | Empty -> "Empty"
 
-let getValueFromAdresse state value =
+let GetValueFromAdresse state value =
     let intValue = 
         match value with
         | Int x -> x
         | _ -> failwith "No int value found"
     state.addresses |> List.item intValue
+   
+let GetValueFromRegister (state: State) reg = 
+    match reg with
+    | Reg1 -> state.reg1
+    | Reg2 -> state.reg2
+    | Reg3 -> state.reg3
+    | Reg4 -> state.reg4
 
-let rec GetValue (lit:Literal) (state:State) =
+let GetIntValueFromRegister register state =
+    match GetValueFromRegister register state with
+    | Int n -> n
+    | _ -> failwith "No int value found"
+
+let rec GetValue lit (state:State) =
     match lit with    
     | Literal.Integer (x, z) -> Int x
     | Literal.Float (x, z) -> Float x
     | Literal.String(x, z) -> String x
-    | Literal.Address(lit) -> getValueFromAdresse state (GetValue lit state)
-    | _ -> failwith("Unknown value type")
+    | Literal.Address(x) -> GetValueFromAdresse state (GetValue x state)
+    | Literal.Register(x,z) -> GetValueFromRegister state x
 
-let GetIntValue (lit:Literal) (state:State)=
+let GetIntValue lit state =
     match GetValue lit state with
     | Int n -> n
     | _ -> failwith "No int value found"
@@ -92,13 +104,27 @@ let UpdateRegister (state: State) register value =
     | Reg3 -> { state with reg3 = value }
     | Reg4 -> { state with reg4 = value }
 
-let Move (state: State) arg1 arg2 pos = 
+let Move (state: State) arg1 arg2 = 
   match arg1 with
     | Address lit -> {state with addresses = UpdateAddresses (GetIntValue lit state) state.addresses (GetValue arg2 state) }
     | Register (register, pos) -> UpdateRegister state register (GetValue arg2 state)
     | _ -> failwith "Unkown data type"
 
-
+let Division(state: State) arg1 arg2 = 
+    let arg1Value = GetValueFromRegister state arg1 
+    let arg2Value = GetValue arg2 state
+    let result = 
+        match (arg1Value, arg2Value) with    
+        | Int x, Int y -> 
+            match (x >= y) with
+            | true -> x - y |> Int
+            | false -> y - x |> Int 
+        | Float x, Float y -> 
+            match (x >= y) with
+            | true -> x - y |> Float
+            | false -> y - x |> Float 
+        | _ -> failwith "Unknown data types"
+    UpdateRegister state arg1 result
 
 // Execute program
 let NextStep (state:State) =
@@ -110,17 +136,18 @@ let NextStep (state:State) =
 let ExecuteStep (ast: Program) (state: State) = 
     let instruction = ast |> List.item state.pc
     match instruction with
-    | Nop _ -> state
-    | Mov(arg1,arg2,pos) -> Move state arg1 arg2 pos |> NextStep
+    | Nop _ -> state // Infinite Loop?
+    | Mov(arg1, arg2, pos) -> NextStep (Move state arg1 arg2)
+    | Div(arg1, arg2, pos) -> NextStep (Division state  arg1 arg2) 
     | _ -> failwith "Unknown action" 
 
 let rec ExecuteProgram (ast: Program) (state: State) =     
     match ast.Tail.IsEmpty with
-    | true -> printf "Done"
+    | true -> printf "Finished executing the program"
     | false ->
-        let executedState = ExecuteStep ast state
-        PrintState executedState
-        ExecuteProgram ast executedState
+        let state' = ExecuteStep ast state
+        PrintState state'
+        ExecuteProgram ast state'
 
 
 [<EntryPoint>]

@@ -1,8 +1,9 @@
 ﻿<Properties StartupConfiguration="{F014F9A3-BCAD-4202-8F5C-A9D75864F171}|Default">
   <MonoDevelop.Ide.Workbench ActiveDocument="SVM/Program.fs">
     <Files>
-      <File FileName="SVM/Program.fs" Line="57" Column="62" />
-      <File FileName="Programs/Programs/squareRoot.svm" Line="7" Column="11" />
+      <File FileName="SVM/Program.fs" Line="115" Column="26" />
+      <File FileName="Programs/Programs/squareRoot.svm" Line="30" Column="4" />
+      <File FileName="SVMParser/Ast.fs" Line="31" Column="3" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />

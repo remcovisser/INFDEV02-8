@@ -1,23 +1,4 @@
-﻿/* Compute the square root of the number stored in [0] and saves
-   the result in [1] */
-
-
-/* Test data */
-mov [0] 10.0
-mov [1] 20.0
-mov [10] 30.0
-
-mov [5] [0]
-mov [6] [1]
-mov [7] [10]
-
-mov reg1 11
-mov reg2 12
-mov reg4 13
-
-/* Test data */
-
-
+﻿/* Compute the square root of the number stored in [0] and saves the result in [1] */
 
 mov [0] 3.0
 mov [1] [0]
