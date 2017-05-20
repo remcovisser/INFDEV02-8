@@ -5,7 +5,7 @@ mov [1] [0]
 mov [2] 10
 mov reg3 0
 
-
+#loop
 mov reg1 [1]
 mov reg2 [0]
 div reg2 reg1

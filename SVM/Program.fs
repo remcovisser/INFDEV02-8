@@ -5,6 +5,7 @@ open SVMAST
 open ParserUtils
 open SVM
 open Microsoft.FSharp.Text.Lexing
+open System.Collections.Generic
 
 let parseFile (fileName : string) =
   let inputChannel = new StreamReader(fileName)
@@ -12,6 +13,9 @@ let parseFile (fileName : string) =
   let parsedAST = Parser.start Lexer.tokenstream lexbuf
   parsedAST
 
+
+
+let dictionary = new Dictionary<string, int>()
 
 // ---- Types ----  
 type DataType =
@@ -92,6 +96,29 @@ let PrintState state =
 
 
 // ---- Actions ----
+let AddLabelsToDictionary (p:Program) =
+    let rec findLabels pc =  
+        match (pc < p.Length) with
+        | true ->
+            let instruction = p |> List.item pc
+            match instruction with
+            | Label(arg1, arg2) -> 
+                dictionary.Add(arg1, pc)
+                let pc' = pc + 1
+                findLabels pc'
+            | _ -> 
+                let pc' = pc + 1
+                findLabels pc'
+        | false -> ()
+    findLabels 0
+    ()
+
+let NextStep (state:State) =
+    { 
+        state with 
+            pc = state.pc+1
+    }
+
 let rec UpdateAddresses n l value =
     match l with
     | [] -> failwith "index out of range"
@@ -111,37 +138,79 @@ let Move (state: State) arg1 arg2 =
     | Register (register, pos) -> UpdateRegister state register (GetValue arg2 state)
     | _ -> failwith "Unkown data type"
 
-let Division(state: State) arg1 arg2 = 
+let ComputeInt arg1 arg2 operator = 
+    match operator with
+    | "/" -> arg1 / arg2 |> Int
+    | "+" -> arg1 + arg2 |> Int
+    | _ -> failwith "Unkown operator"
+
+let ComputeFloat arg1 arg2 operator = 
+    match operator with
+    | "/" -> arg1 / arg2 |> Float
+    | "+" -> arg1 + arg2 |> Float
+    | _ -> failwith "Unkown operator"
+
+let Compute (state: State) arg1 arg2 operator = 
     let arg1Value = GetValueFromRegister state arg1 
     let arg2Value = GetValue arg2 state
     let result = 
         match (arg1Value, arg2Value) with    
-        | Int x, Int y -> y / x |> Int 
-        | Float x, Float y -> y / x |> Float 
+        | Int x, Int y -> ComputeInt x y operator
+        | Float x, Float y -> ComputeFloat x y operator
         | _ -> failwith "Unknown data types"
+    result
+
+let Division(state: State) arg1 arg2 = 
+    let result = Compute state arg1 arg2 "/"
     UpdateRegister state arg1 result
 
-// Execute program
-let NextStep (state:State) =
-    { 
-        state with 
-            pc = state.pc+1
-    }
+let Add(state: State) arg1 arg2 = 
+    let result = Compute state arg1 arg2 "+"
+    UpdateRegister state arg1 result
+   
+let Compare(state: State) arg1 arg2 =
+    let arg1Value = GetValueFromRegister state arg1 
+    let arg2Value = GetValue arg2 state 
+    let result = 
+        match (arg1Value, arg2Value) with
+        | x, y when x > y -> 1
+        | x, y when x = y -> 0
+        | x, y when x < y -> -1
+        | _ -> failwith "Unkown comparison"
+    UpdateRegister state arg1 (result |> Int)
 
+let Jeq(state: State) arg1 arg2 =
+    let arg2Value = GetIntValueFromRegister state arg2
+    match (arg2Value = 0),(dictionary.Item arg1) with
+    | true, pc -> {state with pc = pc} 
+    | false, pc -> NextStep(state)
+
+let Jump(state: State) arg1 = 
+    let pc = dictionary.Item arg1
+    {state with pc = pc}
+
+// Execute program
 let ExecuteStep (ast: Program) (state: State) = 
-    let instruction = ast |> List.item state.pc
-    match instruction with
-    | Nop _ -> state // Infinite Loop?
-    | Mov(arg1, arg2, pos) -> NextStep (Move state arg1 arg2)
-    | Div(arg1, arg2, pos) -> NextStep (Division state  arg1 arg2) 
-    | _ -> failwith "Unknown action" 
+    match (state.pc < ast.Length) with
+    | true ->
+        let instruction = ast |> List.item state.pc
+        match instruction with
+        | Nop _ -> NextStep(state) // Why is this used?
+        | Label(arg1, arg2) -> NextStep(state)
+        | Mov(arg1, arg2, pos) -> NextStep (Move state arg1 arg2)
+        | Div(arg1, arg2, pos) -> NextStep (Division state arg1 arg2) 
+        | Add(arg1, arg2, pos) -> NextStep (Add state arg1 arg2) 
+        | Cmp(arg1, arg2, pos) -> NextStep (Compare state arg1 arg2)
+        | Jeq(arg1, arg2, pos) -> Jeq state arg1 arg2
+        | Jmp(arg1, post) -> Jump state arg1
+        | _ -> failwith "Unknown action" 
+    | false -> failwith "Done executing the program"
 
 let rec ExecuteProgram (ast: Program) (state: State) =     
-    match ast.Tail.IsEmpty with
-    | true -> printf "Finished executing the program"
-    | false ->
-        PrintState state
-        ExecuteProgram ast (ExecuteStep ast state)
+    PrintState state
+    ExecuteProgram ast (ExecuteStep ast state)
+
+
 
 
 [<EntryPoint>]
@@ -151,7 +220,8 @@ let main argv =
       let ast = parseFile argv.[0]
       // ---- Implemented ----
       let state = CreateEmptyState (int argv.[1])
-      ExecuteProgram ast state  
+      AddLabelsToDictionary ast
+      ExecuteProgram ast state
       // ---- Implemented ----
       0
     else
