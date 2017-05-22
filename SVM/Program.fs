@@ -13,16 +13,14 @@ let parseFile (fileName : string) =
   let parsedAST = Parser.start Lexer.tokenstream lexbuf
   parsedAST
 
+let labelsDictionary = new Dictionary<string, int>()
 
-
-let dictionary = new Dictionary<string, int>()
 
 // ---- Types ----  
 type DataType =
     | String of string
     | Int of int
     | Float of float
-    | Empty of int
 
 type State =  {
     pc : int
@@ -39,7 +37,6 @@ let DataTypeToString dataType =
     | String x -> x
     | Int x -> x |> string
     | Float x -> x |> string
-    | Empty x -> "0" 
 
 let GetValueFromAdresse state value =
     let intValue = 
@@ -76,11 +73,11 @@ let GetIntValue lit state =
 let CreateEmptyState memorySize = 
     {
         pc = 0
-        reg1 = Empty 0
-        reg2 = Empty 0
-        reg3 = Empty 0
-        reg4 = Empty 0
-        addresses = [0..memorySize-1] |> List.map (fun x -> Empty 0)
+        reg1 = Int 0
+        reg2 = Int 0
+        reg3 = Int 0
+        reg4 = Int 0
+        addresses = [0..memorySize-1] |> List.map (fun x ->Int 0)
     }
 
 let PrintState state = 
@@ -97,20 +94,20 @@ let PrintState state =
 
 // ---- Actions ----
 let AddLabelsToDictionary (p:Program) =
-    let rec findLabels pc =  
+    let rec _findLabels pc =  
         match (pc < p.Length) with
         | true ->
             let instruction = p |> List.item pc
             match instruction with
             | Label(arg1, arg2) -> 
-                dictionary.Add(arg1, pc)
+                labelsDictionary.Add(arg1, pc)
                 let pc' = pc + 1
-                findLabels pc'
+                _findLabels pc'
             | _ -> 
                 let pc' = pc + 1
-                findLabels pc'
+                _findLabels pc'
         | false -> ()
-    findLabels 0
+    _findLabels 0
     ()
 
 let NextStep (state:State) =
@@ -195,18 +192,18 @@ let Not(state: State) arg1 =
 
 let Jeq(state: State) arg1 arg2 =
     let arg2Value = GetIntValueFromRegister state arg2
-    match (arg2Value = 0),(dictionary.Item arg1) with
+    match (arg2Value = 0),(labelsDictionary.Item arg1) with
     | true, pc -> {state with pc = pc} 
     | false, pc -> NextStep(state)
 
 let Jc(state: State) arg1 arg2 =
     let arg2Value = GetIntValueFromRegister state arg2
-    match (arg2Value >= 0),(dictionary.Item arg1) with
+    match (arg2Value >= 0),(labelsDictionary.Item arg1) with
     | true, pc -> {state with pc = pc} 
     | false, pc -> NextStep(state)
 
 let Jump(state: State) arg1 = 
-    let pc = dictionary.Item arg1
+    let pc = labelsDictionary.Item arg1
     {state with pc = pc}
 
 // Execute program
