@@ -142,12 +142,14 @@ let ComputeInt arg1 arg2 operator =
     match operator with
     | "/" -> arg1 / arg2 |> Int
     | "+" -> arg1 + arg2 |> Int
+    | "-" -> arg1 - arg2 |> Int
     | _ -> failwith "Unkown operator"
 
 let ComputeFloat arg1 arg2 operator = 
     match operator with
     | "/" -> arg1 / arg2 |> Float
     | "+" -> arg1 + arg2 |> Float
+    | "-" -> arg1 - arg2 |> Float
     | _ -> failwith "Unkown operator"
 
 let Compute (state: State) arg1 arg2 operator = 
@@ -167,6 +169,10 @@ let Division(state: State) arg1 arg2 =
 let Add(state: State) arg1 arg2 = 
     let result = Compute state arg1 arg2 "+"
     UpdateRegister state arg1 result
+
+let Sub(state: State) arg1 arg2 = 
+    let result = Compute state arg1 arg2 "-"
+    UpdateRegister state arg1 result
    
 let Compare(state: State) arg1 arg2 =
     let arg1Value = GetValueFromRegister state arg1 
@@ -179,9 +185,23 @@ let Compare(state: State) arg1 arg2 =
         | _ -> failwith "Unkown comparison"
     UpdateRegister state arg1 (result |> Int)
 
+let Not(state: State) arg1 = 
+    let arg1Value = GetIntValueFromRegister state arg1 
+    let result = 
+        match arg1Value with
+        | x when x >= 0 -> -1
+        | _ -> 0
+    UpdateRegister state arg1 (result |> Int)
+
 let Jeq(state: State) arg1 arg2 =
     let arg2Value = GetIntValueFromRegister state arg2
     match (arg2Value = 0),(dictionary.Item arg1) with
+    | true, pc -> {state with pc = pc} 
+    | false, pc -> NextStep(state)
+
+let Jc(state: State) arg1 arg2 =
+    let arg2Value = GetIntValueFromRegister state arg2
+    match (arg2Value >= 0),(dictionary.Item arg1) with
     | true, pc -> {state with pc = pc} 
     | false, pc -> NextStep(state)
 
@@ -200,8 +220,11 @@ let ExecuteStep (ast: Program) (state: State) =
         | Mov(arg1, arg2, pos) -> NextStep (Move state arg1 arg2)
         | Div(arg1, arg2, pos) -> NextStep (Division state arg1 arg2) 
         | Add(arg1, arg2, pos) -> NextStep (Add state arg1 arg2) 
+        | Sub(arg1, arg2, pos) -> NextStep (Sub state arg1 arg2) 
         | Cmp(arg1, arg2, pos) -> NextStep (Compare state arg1 arg2)
+        | Not(arg1, pos) -> NextStep (Not state arg1)
         | Jeq(arg1, arg2, pos) -> Jeq state arg1 arg2
+        | Jc(arg1, arg2, pos) -> Jc state arg1 arg2
         | Jmp(arg1, post) -> Jump state arg1
         | _ -> failwith "Unknown action" 
     | false -> failwith "Done executing the program"

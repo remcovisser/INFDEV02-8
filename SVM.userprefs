@@ -1,15 +1,15 @@
 ﻿<Properties StartupConfiguration="{F014F9A3-BCAD-4202-8F5C-A9D75864F171}|Default">
-  <MonoDevelop.Ide.Workbench ActiveDocument="Programs/Programs/squareRoot.svm">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Programs/Programs/initList.svm">
     <Files>
-      <File FileName="SVM/Program.fs" Line="196" Column="5" />
-      <File FileName="SVMParser/Ast.fs" Line="35" Column="15" />
-      <File FileName="Programs/Programs/squareRoot.svm" Line="18" Column="4" />
+      <File FileName="SVM/Program.fs" Line="152" Column="20" />
+      <File FileName="SVMParser/Ast.fs" Line="26" Column="18" />
+      <File FileName="Programs/Programs/initList.svm" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore>
-      <Breakpoint file="/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/SVM/Program.fs" relfile="SVM/Program.fs" line="196" column="5" />
+      <Breakpoint file="/Users/remcovisser/code/school/hr/jaar2/blok4/SVM/SVM/Program.fs" relfile="SVM/Program.fs" line="229" column="1" />
     </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
