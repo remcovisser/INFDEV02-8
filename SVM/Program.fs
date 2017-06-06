@@ -38,7 +38,7 @@ let DataTypeToString dataType =
     | Int x -> x |> string
     | Float x -> x |> string
 
-let GetValueFromAdresse state value =
+let GetValueFromAdress state value =
     let intValue = 
         match value with
         | Int x -> x
@@ -52,8 +52,8 @@ let GetValueFromRegister (state: State) reg =
     | Reg3 -> state.reg3
     | Reg4 -> state.reg4
 
-let GetIntValueFromRegister register state =
-    match GetValueFromRegister register state with
+let GetIntValueFromRegister state register =
+    match GetValueFromRegister state register with
     | Int n -> n
     | _ -> failwith "No int value found"
 
@@ -229,7 +229,6 @@ let ExecuteStep (ast: Program) (state: State) =
 let rec ExecuteProgram (ast: Program) (state: State) =     
     PrintState state
     ExecuteProgram ast (ExecuteStep ast state)
-
 
 
 
