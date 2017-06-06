@@ -62,7 +62,7 @@ let rec GetValue lit (state:State) =
     | Literal.Integer (x, z) -> Int x
     | Literal.Float (x, z) -> Float x
     | Literal.String(x, z) -> String x
-    | Literal.Address(x) -> GetValueFromAdresse state (GetValue x state)
+    | Literal.Address(x) -> GetValueFromAdress state (GetValue x state)
     | Literal.Register(x,z) -> GetValueFromRegister state x
 
 let GetIntValue lit state =
